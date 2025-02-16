@@ -1,0 +1,483 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>postgresql: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">avito-shop-service/internal/storage/postgresql/info.go (0.0%)</option>
+				
+				<option value="file1">avito-shop-service/internal/storage/postgresql/init.go (5.9%)</option>
+				
+				<option value="file2">avito-shop-service/internal/storage/postgresql/shop.go (96.7%)</option>
+				
+				<option value="file3">avito-shop-service/internal/storage/postgresql/user.go (87.5%)</option>
+				
+				<option value="file4">avito-shop-service/internal/storage/postgresql/wallet.go (90.5%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package postgresql
+
+import (
+        "avito-shop-service/internal/models"
+        "context"
+        "log/slog"
+)
+
+func (s *storage) GetUserInventory(ctx context.Context, userID string) ([]models.InventoryItem, error) <span class="cov0" title="0">{
+        query := `
+                SELECT i.name, inv.quantity
+                FROM inventory inv
+                JOIN items i ON inv.item_id = i.id
+                WHERE inv.user_id = $1
+        `
+
+        rows, err := s.DB.QueryContext(ctx, query, userID)
+
+        if err != nil </span><span class="cov0" title="0">{
+                s.log.Error("failed to query user inventory", slog.Any("error", err))
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">defer rows.Close()
+
+        var inventory []models.InventoryItem
+
+        for rows.Next() </span><span class="cov0" title="0">{
+
+                var item models.InventoryItem
+
+                if err := rows.Scan(&amp;item.Type, &amp;item.Quantity); err != nil </span><span class="cov0" title="0">{
+                        s.log.Error("failed to scan inventory row", slog.Any("error", err))
+                        return nil, err
+                }</span>
+
+                <span class="cov0" title="0">inventory = append(inventory, item)</span>
+        }
+
+        <span class="cov0" title="0">if err = rows.Err(); err != nil </span><span class="cov0" title="0">{
+                s.log.Error("error iterating over rows", slog.Any("error", err))
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">return inventory, nil</span>
+}
+func (s *storage) GetUserTransactions(ctx context.Context, userID string) (models.CoinHistory, error) <span class="cov0" title="0">{
+        queryReceived := `
+                SELECT u.username, t.amount
+                FROM transactions t
+                JOIN users u ON t.sender_id = u.id
+                WHERE t.receiver_id = $1
+                ORDER BY t.transaction_time DESC
+        `
+
+        querySent := `
+                SELECT u.username, t.amount 
+                FROM transactions t
+                JOIN users u ON t.receiver_id = u.id
+                WHERE t.sender_id = $1
+                ORDER BY t.transaction_time DESC
+        `
+
+        var history models.CoinHistory
+
+        receivedRows, err := s.DB.QueryContext(ctx, queryReceived, userID)
+        if err != nil </span><span class="cov0" title="0">{
+                s.log.Error("failed to query received transactions", slog.Any("error", err))
+                return models.CoinHistory{}, err
+        }</span>
+        <span class="cov0" title="0">defer receivedRows.Close()
+
+        for receivedRows.Next() </span><span class="cov0" title="0">{
+                var transaction models.CoinTransaction
+                if err := receivedRows.Scan(&amp;transaction.FromUser, &amp;transaction.Amount); err != nil </span><span class="cov0" title="0">{
+                        s.log.Error("failed to scan received transaction", slog.Any("error", err))
+                        return models.CoinHistory{}, err
+                }</span>
+                <span class="cov0" title="0">history.Received = append(history.Received, transaction)</span>
+        }
+
+        <span class="cov0" title="0">sentRows, err := s.DB.QueryContext(ctx, querySent, userID)
+        if err != nil </span><span class="cov0" title="0">{
+                s.log.Error("failed to query sent transactions", slog.Any("error", err))
+                return models.CoinHistory{}, err
+        }</span>
+        <span class="cov0" title="0">defer sentRows.Close()
+
+        for sentRows.Next() </span><span class="cov0" title="0">{
+                var transaction models.CoinTransaction
+                if err := sentRows.Scan(&amp;transaction.ToUser, &amp;transaction.Amount); err != nil </span><span class="cov0" title="0">{
+                        s.log.Error("failed to scan sent transaction", slog.Any("error", err))
+                        return models.CoinHistory{}, err
+                }</span>
+                <span class="cov0" title="0">history.Sent = append(history.Sent, transaction)</span>
+        }
+
+        <span class="cov0" title="0">return history, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package postgresql
+
+import (
+        "avito-shop-service/internal/config"
+        "database/sql"
+        "fmt"
+        "log/slog"
+)
+
+const UnableToConnectDatabase = "Unable to connect to database: "
+
+type storage struct {
+        DB  *sql.DB
+        log *slog.Logger
+}
+
+func ConnectAndNew(log *slog.Logger, cfg *config.DatabaseConfig) (*storage, error) <span class="cov0" title="0">{
+        const op = "storage.postgresql.New"
+
+        log = log.With(
+                slog.String("op", op),
+        )
+
+        dsn := getDSN(cfg)
+
+        db, err := sql.Open("pgx", dsn)
+        if err != nil </span><span class="cov0" title="0">{
+                log.Error(UnableToConnectDatabase, "error", err)
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">err = db.Ping()
+        if err != nil </span><span class="cov0" title="0">{
+                log.Error(UnableToConnectDatabase, "error", err)
+                return nil, err
+        }</span>
+
+        <span class="cov0" title="0">db.SetMaxOpenConns(40)
+        db.SetMaxIdleConns(40)
+
+        storage := &amp;storage{
+                DB:  db,
+                log: log,
+        }
+
+        return storage, nil</span>
+}
+
+func NewRep(db *sql.DB, log *slog.Logger) *storage <span class="cov8" title="1">{
+        return &amp;storage{
+                DB:  db,
+                log: log,
+        }
+}</span>
+
+func getDSN(cfg *config.DatabaseConfig) string <span class="cov0" title="0">{
+        return fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s target_session_attrs=read-write", cfg.Host, cfg.User, cfg.Password, cfg.Name, cfg.Port)
+}</span>
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package postgresql
+
+import (
+        "avito-shop-service/internal/models"
+        "context"
+        "database/sql"
+        "errors"
+        "fmt"
+)
+
+const (
+        queryUpdateBalance   = "UPDATE coins SET balance = balance - $1 WHERE user_id = $2"
+        queryAddToInventory  = "INSERT INTO inventory (user_id, item_id, quantity) VALUES ($1, $2, 1) ON CONFLICT (user_id, item_id) DO UPDATE SET quantity = inventory.quantity + 1"
+        queryGetItemByName   = `SELECT id, name, price FROM items WHERE name = $1`
+        querryGetUserBalance = `SELECT balance FROM coins WHERE user_id = $1`
+
+        errFetchBalance    = "failed to fetch user balance"
+        errFetchItemCost   = "failed to fetch item cost"
+        errUpdateBalance   = "failed to update user balance"
+        errUpdateInventory = "failed to update inventory"
+        errQuery           = "database query error"
+)
+
+func (s *storage) AddItemToInventory(ctx context.Context, userID string, item *models.Item) error <span class="cov8" title="1">{
+        const op = "storage.postgresql.AddItemToInventory"
+
+        tx, err := s.DB.BeginTx(ctx, nil)
+        if err != nil </span><span class="cov8" title="1">{
+
+                return fmt.Errorf("%s: start transaction: %w", op, err)
+        }</span>
+
+        <span class="cov8" title="1">defer func() </span><span class="cov8" title="1">{
+                var e error
+                if err == nil </span><span class="cov8" title="1">{
+                        e = tx.Commit()
+                }</span> else<span class="cov8" title="1"> {
+                        e = tx.Rollback()
+                }</span>
+
+                <span class="cov8" title="1">if err == nil &amp;&amp; e != nil </span><span class="cov0" title="0">{
+                        err = fmt.Errorf("finishing transaction: %w", e)
+                }</span>
+        }()
+
+        <span class="cov8" title="1">if _, err = tx.ExecContext(ctx, queryUpdateBalance, item.Price, userID); err != nil </span><span class="cov8" title="1">{
+
+                return fmt.Errorf("%s: %s: %w", op, errUpdateBalance, err)
+        }</span>
+
+        <span class="cov8" title="1">if _, err = tx.ExecContext(ctx, queryAddToInventory, userID, item.ID); err != nil </span><span class="cov8" title="1">{
+
+                return fmt.Errorf("%s: %s: %w", op, errUpdateInventory, err)
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (s *storage) GetItemByName(ctx context.Context, itemName string) (*models.Item, error) <span class="cov8" title="1">{
+        const op = "storage.postgresql.GetItemByName"
+
+        item := &amp;models.Item{}
+
+        if err := s.DB.QueryRowContext(ctx, queryGetItemByName, itemName).Scan(&amp;item.ID, &amp;item.Name, &amp;item.Price); err != nil </span><span class="cov8" title="1">{
+
+                if errors.Is(err, sql.ErrNoRows) </span><span class="cov8" title="1">{
+                        return nil, fmt.Errorf("%s: item does not exist :%w", op, err)
+                }</span>
+
+                <span class="cov8" title="1">return nil, fmt.Errorf("%s: %s: %w", op, errFetchItemCost, err)</span>
+        }
+        <span class="cov8" title="1">return item, nil</span>
+}
+
+func (s *storage) GetUserBalance(ctx context.Context, userID string) (int, error) <span class="cov8" title="1">{
+        const op = "storage.postgresql.GetUserBalance"
+
+        var balance int
+
+        if err := s.DB.QueryRowContext(ctx, querryGetUserBalance, userID).Scan(&amp;balance); err != nil </span><span class="cov8" title="1">{
+                if errors.Is(err, sql.ErrNoRows) </span><span class="cov8" title="1">{
+
+                        return 0, fmt.Errorf("%s: user balance does not exist: %w", op, err)
+                }</span>
+
+                <span class="cov8" title="1">return 0, fmt.Errorf("%s: %s %w", op, errFetchBalance, err)</span>
+        }
+        <span class="cov8" title="1">return balance, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package postgresql
+
+import (
+        "avito-shop-service/internal/models"
+        "database/sql"
+        "errors"
+        "fmt"
+)
+
+const (
+        errFailedToSetBalance = " set default balance"
+        errCreateUser         = "failed to create user"
+
+        defaultBalance = 1000
+
+        querryCreateUser       = `INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id`
+        querryAuthorizeUser    = `SELECT id, username, password_hash FROM users WHERE username = $1`
+        querySetDefaultBalance = `INSERT INTO coins (user_id, balance) VALUES ($1, $2) ON CONFLICT (user_id) DO NOTHING`
+)
+
+func (s *storage) Create(username, hashedPassword string) (*models.User, error) <span class="cov8" title="1">{
+        const op = "storage.postgresql.Create"
+
+        var userID string
+
+        err := s.DB.QueryRow(querryCreateUser, username, hashedPassword).Scan(&amp;userID)
+        if err != nil </span><span class="cov8" title="1">{
+                if errors.Is(err, sql.ErrNoRows) </span><span class="cov0" title="0">{
+                        return nil, errors.New("no rows affected")
+                }</span>
+                <span class="cov8" title="1">return nil, fmt.Errorf("%s: %s: %w", op, errCreateUser, err)</span>
+        }
+
+        <span class="cov8" title="1">if err := s.GiveDefaultBalanceToUser(userID); err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("%s: failed to give default balance: %w", op, err)
+        }</span>
+
+        <span class="cov8" title="1">return &amp;models.User{
+                ID:           userID,
+                Username:     username,
+                PasswordHash: hashedPassword,
+        }, nil</span>
+}
+
+func (s *storage) GetUserByUsername(username string) (*models.User, error) <span class="cov8" title="1">{
+        const op = "storage.postgresql.GetUserByUsername"
+
+        user := models.User{}
+
+        row := s.DB.QueryRow(querryAuthorizeUser, username)
+
+        err := row.Scan(&amp;user.ID, &amp;user.Username, &amp;user.PasswordHash)
+        if err != nil </span><span class="cov8" title="1">{
+                if errors.Is(err, sql.ErrNoRows) </span><span class="cov8" title="1">{
+                        return nil, nil
+                }</span>
+                <span class="cov8" title="1">return nil, fmt.Errorf("%s: request execution error: %w", op, err)</span>
+        }
+
+        <span class="cov8" title="1">return &amp;user, nil</span>
+}
+
+func (s *storage) GiveDefaultBalanceToUser(userID string) error <span class="cov8" title="1">{
+        const op = "storage.postgresql.GiveDefaultBalanceToUser"
+
+        _, err := s.DB.Exec(querySetDefaultBalance, userID, defaultBalance)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("%s: %s: %w", op, errFailedToSetBalance, err)
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package postgresql
+
+import (
+        "context"
+        "fmt"
+)
+
+func (s *storage) SendCoinToUser(ctx context.Context, receiverID string, senderID string, amount int) error <span class="cov8" title="1">{
+        const op = "storage.postgresql.SendCoinToUser"
+
+        const queryUpdateSender = `UPDATE coins SET balance = balance - $1 WHERE user_id = $2 AND balance &gt;= $1`
+        const queryUpdateReceiver = `UPDATE coins SET balance = balance + $1 WHERE user_id = $2 `
+        const queryInsertTransaction = `INSERT INTO transactions (sender_id, receiver_id, amount) VALUES ($1, $2, $3)`
+
+        tx, err := s.DB.BeginTx(ctx, nil)
+        if err != nil </span><span class="cov0" title="0">{
+                return fmt.Errorf("%s: start transaction: %w", op, err)
+        }</span>
+
+        <span class="cov8" title="1">defer func() </span><span class="cov8" title="1">{
+                var e error
+                if err == nil </span><span class="cov8" title="1">{
+                        e = tx.Commit()
+                }</span> else<span class="cov8" title="1"> {
+                        e = tx.Rollback()
+                }</span>
+
+                <span class="cov8" title="1">if err == nil &amp;&amp; e != nil </span><span class="cov0" title="0">{
+                        err = fmt.Errorf("finishing transaction: %w", e)
+                }</span>
+        }()
+
+        <span class="cov8" title="1">if _, err = tx.ExecContext(ctx, queryUpdateSender, amount, senderID); err != nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("%s: update sender balance: %w", op, err)
+        }</span>
+
+        <span class="cov8" title="1">if _, err = tx.ExecContext(ctx, queryUpdateReceiver, amount, receiverID); err != nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("%s: update receiver balance: %w", op, err)
+        }</span>
+
+        <span class="cov8" title="1">if _, err = tx.ExecContext(ctx, queryInsertTransaction, senderID, receiverID, amount); err != nil </span><span class="cov8" title="1">{
+                return fmt.Errorf("%s: insert transaction: %w", op, err)
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

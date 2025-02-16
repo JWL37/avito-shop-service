@@ -1,0 +1,4 @@
+POST http://localhost:8080/api/sendCoin
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NDAzMDAzMDQsImlhdCI6MTczOTY5NTUwNCwidXNlciI6eyJpZCI6ImM2ZGY4YzMwLTg4MmYtNDU0Yi1iZDQwLTY1M2EwY2YzMjY0ZiIsInVzZXJuYW1lIjoic3RyZXNzdGVzdCJ9fQ.uNvoQz4cACasNgWs-zo4tKA8CfXdJQd_oxAI8kexhDA
+
