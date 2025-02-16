@@ -3,7 +3,7 @@ services:
     image: shop_test_service
     container_name: shop_test_service
     build:
-      context: ../..
+      context: .
     ports:
       - "8090:8090"
     depends_on:

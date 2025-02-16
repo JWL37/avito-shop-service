@@ -29,7 +29,7 @@ type SendCoinRequest struct {
 
 func TestBuyMerch(t *testing.T) {
 	// Регистрация пользователя
-	authBody := `{"username": "testuser", "password": "testpassword"}`
+	authBody := `{"username": "ttessttuser", "password": "testpassword"}`
 	req, err := http.NewRequest(http.MethodPost, baseURL+"/api/auth", strings.NewReader(authBody))
 	require.NoError(t, err)
 	req.Header.Set("Content-Type", "application/json")
@@ -60,7 +60,7 @@ func TestBuyMerch(t *testing.T) {
 
 func TestSendCoins(t *testing.T) {
 	// Регистрация первого пользователя
-	authBody1 := `{"username": "user1", "password": "password1"}`
+	authBody1 := `{"username": "ttessttuser1", "password": "password1"}`
 	req, err := http.NewRequest(http.MethodPost, baseURL+"/api/auth", strings.NewReader(authBody1))
 	require.NoError(t, err)
 	req.Header.Set("Content-Type", "application/json")
@@ -76,7 +76,7 @@ func TestSendCoins(t *testing.T) {
 	require.NotEmpty(t, authResp1.Token)
 
 	// Регистрация второго пользователя
-	authBody2 := `{"username": "user2", "password": "password2"}`
+	authBody2 := `{"username": "ttessttuser2", "password": "password2"}`
 	req, err = http.NewRequest(http.MethodPost, baseURL+"/api/auth", strings.NewReader(authBody2))
 	require.NoError(t, err)
 	req.Header.Set("Content-Type", "application/json")
@@ -92,7 +92,7 @@ func TestSendCoins(t *testing.T) {
 	require.NotEmpty(t, authResp2.Token)
 
 	// Отправка монет
-	sendCoinBody := `{"toUser": "user2", "amount": 10}`
+	sendCoinBody := `{"toUser": "ttessttuser2", "amount": 10}`
 	req, err = http.NewRequest(http.MethodPost, baseURL+"/api/sendCoin", strings.NewReader(sendCoinBody))
 	require.NoError(t, err)
 	req.Header.Set("Authorization", "Bearer "+authResp1.Token)
