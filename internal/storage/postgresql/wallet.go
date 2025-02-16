@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func (s *storage) SendCoinToUser(ctx context.Context, receiverID string, senderID string, amount int) error {
+func (s *Storage) SendCoinToUser(ctx context.Context, receiverID string, senderID string, amount int) error {
 	const op = "storage.postgresql.SendCoinToUser"
 
 	const queryUpdateSender = `UPDATE coins SET balance = balance - $1 WHERE user_id = $2 AND balance >= $1`

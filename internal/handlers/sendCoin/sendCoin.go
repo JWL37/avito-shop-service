@@ -25,7 +25,7 @@ type Request struct {
 	Amount int    `json:"amount"`
 }
 
-//go:generate mockgen -source=sendCoin.go -destination=mock/sendCoin_mock.go -package=sendcoin CoinSender
+//go:generate mockgen -source=sendCoin.go -destination=mock/sendCoin_mock.go -package=mock CoinSender
 type CoinSender interface {
 	SendCoin(context.Context, string, string, int) error
 }

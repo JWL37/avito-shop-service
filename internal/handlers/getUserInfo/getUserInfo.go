@@ -15,7 +15,7 @@ const (
 	successGetUserInfo  = "get user info successfully"
 )
 
-//go:generate mockgen -source=getUserInfo.go -destination=mock/getUserInfo_mock.go -package=getuserinfo UserInfoGetter
+//go:generate mockgen -source=getUserInfo.go -destination=mock/getUserInfo_mock.go -package=mock UserInfoGetter
 type UserInfoGetter interface {
 	GetUserInfo(context.Context, string) (models.UserInfo, error)
 }

@@ -17,7 +17,7 @@ type ResponseOK struct {
 	Token string `json:"token"`
 }
 
-//go:generate mockgen -source=registerUser.go -destination=mock/registerUser_mock.go -package=registeruser UserRegistrater
+//go:generate mockgen -source=registerUser.go -destination=mock/registerUser_mock.go -package=mock UserRegistrater
 type UserRegistrater interface {
 	Register(string, string) (string, error)
 }

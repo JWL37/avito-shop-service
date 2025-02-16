@@ -21,7 +21,7 @@ const (
 	errQuery           = "database query error"
 )
 
-func (s *storage) AddItemToInventory(ctx context.Context, userID string, item *models.Item) error {
+func (s *Storage) AddItemToInventory(ctx context.Context, userID string, item *models.Item) error {
 	const op = "storage.postgresql.AddItemToInventory"
 
 	tx, err := s.DB.BeginTx(ctx, nil)
@@ -56,7 +56,7 @@ func (s *storage) AddItemToInventory(ctx context.Context, userID string, item *m
 	return nil
 }
 
-func (s *storage) GetItemByName(ctx context.Context, itemName string) (*models.Item, error) {
+func (s *Storage) GetItemByName(ctx context.Context, itemName string) (*models.Item, error) {
 	const op = "storage.postgresql.GetItemByName"
 
 	item := &models.Item{}
@@ -72,7 +72,7 @@ func (s *storage) GetItemByName(ctx context.Context, itemName string) (*models.I
 	return item, nil
 }
 
-func (s *storage) GetUserBalance(ctx context.Context, userID string) (int, error) {
+func (s *Storage) GetUserBalance(ctx context.Context, userID string) (int, error) {
 	const op = "storage.postgresql.GetUserBalance"
 
 	var balance int

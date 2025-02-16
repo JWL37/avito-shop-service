@@ -18,7 +18,7 @@ const (
 	querySetDefaultBalance = `INSERT INTO coins (user_id, balance) VALUES ($1, $2) ON CONFLICT (user_id) DO NOTHING`
 )
 
-func (s *storage) Create(username, hashedPassword string) (*models.User, error) {
+func (s *Storage) Create(username, hashedPassword string) (*models.User, error) {
 	const op = "storage.postgresql.Create"
 
 	var userID string
@@ -42,7 +42,7 @@ func (s *storage) Create(username, hashedPassword string) (*models.User, error) 
 	}, nil
 }
 
-func (s *storage) GetUserByUsername(username string) (*models.User, error) {
+func (s *Storage) GetUserByUsername(username string) (*models.User, error) {
 	const op = "storage.postgresql.GetUserByUsername"
 
 	user := models.User{}
@@ -60,7 +60,7 @@ func (s *storage) GetUserByUsername(username string) (*models.User, error) {
 	return &user, nil
 }
 
-func (s *storage) GiveDefaultBalanceToUser(userID string) error {
+func (s *Storage) GiveDefaultBalanceToUser(userID string) error {
 	const op = "storage.postgresql.GiveDefaultBalanceToUser"
 
 	_, err := s.DB.Exec(querySetDefaultBalance, userID, defaultBalance)

@@ -14,7 +14,7 @@ import (
 
 type contextKey string
 
-const UserIDContextKey contextKey = "userID"
+const UserIDContextKey contextKey = "UserID"
 
 func Auth(log *slog.Logger, secret string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {

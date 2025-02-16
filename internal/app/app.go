@@ -25,6 +25,7 @@ import (
 type App struct {
 	httpServer *http.Server
 	log        *slog.Logger
+	storage    *postgresql.Storage
 }
 
 // NewApp создает и инициализирует приложение
@@ -32,7 +33,6 @@ func NewApp(log *slog.Logger, cfg *config.Config) *App {
 	storage, err := postgresql.ConnectAndNew(log, &cfg.Database)
 	if err != nil {
 		log.Error("Failed to create DB:")
-
 		os.Exit(1)
 	}
 
@@ -64,6 +64,7 @@ func NewApp(log *slog.Logger, cfg *config.Config) *App {
 	return &App{
 		httpServer: srv,
 		log:        log,
+		storage:    storage,
 	}
 }
 
@@ -76,5 +77,13 @@ func (a *App) Run() error {
 // Shutdown останавливает сервер
 func (a *App) Shutdown(ctx context.Context) error {
 	a.log.Info("Shutting down server...")
-	return a.httpServer.Shutdown(ctx)
+	err := a.httpServer.Shutdown(ctx)
+	if err != nil {
+		return err
+	}
+
+	a.storage.Stop()
+	a.log.Info("Database connection closed.")
+
+	return nil
 }
